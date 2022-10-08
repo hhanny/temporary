@@ -1,0 +1,149 @@
+<?php
+
+namespace app\models;
+
+use Yii;
+use yii\helpers\ArrayHelper;
+
+/**
+ * This is the model class for table "manufactory".
+ *
+ * @property int $factory_id
+ * @property int $hospital_id
+ * @property string $name
+ * @property string $address
+ * @property string $phone
+ * @property string $pic_name
+ * @property string $pic_phone
+ * @property bool $is_active
+ * @property int|null $created_by
+ * @property string|null $created_time
+ * @property int|null $updated_by
+ * @property string|null $updated_time
+ * @property bool|null $is_deleted
+ * @property int|null $deleted_by
+ * @property string|null $deleted_time
+ *
+ * @property Hospital $hospital
+ * @property User $createdBy
+ * @property User $updatedBy
+ * @property User $deletedBy
+ */
+class Manufactory extends \yii\db\ActiveRecord
+{
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'manufactory';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['hospital_id', 'name', 'address', 'phone', 'pic_name', 'pic_phone'], 'required'],
+            [['hospital_id', 'created_by', 'updated_by', 'deleted_by'], 'default', 'value' => null],
+            [['hospital_id', 'created_by', 'updated_by', 'deleted_by'], 'integer'],
+            [['is_active', 'is_deleted'], 'boolean'],
+            [['created_time', 'updated_time', 'deleted_time'], 'safe'],
+            [['name', 'address'], 'string', 'max' => 255],
+            [['phone', 'pic_phone'], 'string', 'max' => 20],
+            [['pic_name'], 'string', 'max' => 50],
+            [['hospital_id', 'name'], 'unique', 'targetAttribute' => ['hospital_id', 'name']],
+            [['hospital_id'], 'exist', 'skipOnError' => true, 'targetClass' => Hospital::className(), 'targetAttribute' => ['hospital_id' => 'hospital_id']],
+            [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['created_by' => 'user_id']],
+            [['updated_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['updated_by' => 'user_id']],
+            [['deleted_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['deleted_by' => 'user_id']],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'factory_id' => Yii::t('app', 'Factory ID'),
+            'hospital_id' => Yii::t('app', 'Hospital ID'),
+            'name' => Yii::t('app', 'Name'),
+            'address' => Yii::t('app', 'Address'),
+            'phone' => Yii::t('app', 'Phone'),
+            'pic_name' => Yii::t('app', 'Pic Name'),
+            'pic_phone' => Yii::t('app', 'Pic Phone'),
+            'is_active' => Yii::t('app', 'Is Active'),
+            'created_by' => Yii::t('app', 'Created By'),
+            'created_time' => Yii::t('app', 'Created Time'),
+            'updated_by' => Yii::t('app', 'Updated By'),
+            'updated_time' => Yii::t('app', 'Updated Time'),
+            'is_deleted' => Yii::t('app', 'Is Deleted'),
+            'deleted_by' => Yii::t('app', 'Deleted By'),
+            'deleted_time' => Yii::t('app', 'Deleted Time'),
+        ];
+    }
+
+    /**
+     * Gets query for [[Hospital]].
+     *
+     * @return \yii\db\ActiveQuery|HospitalQuery
+     */
+    public function getHospital()
+    {
+        return $this->hasOne(Hospital::className(), ['hospital_id' => 'hospital_id']);
+    }
+
+    /**
+     * Gets query for [[CreatedBy]].
+     *
+     * @return \yii\db\ActiveQuery|UsersQuery
+     */
+    public function getCreatedBy()
+    {
+        return $this->hasOne(User::className(), ['user_id' => 'created_by']);
+    }
+
+    /**
+     * Gets query for [[UpdatedBy]].
+     *
+     * @return \yii\db\ActiveQuery|UsersQuery
+     */
+    public function getUpdatedBy()
+    {
+        return $this->hasOne(User::className(), ['user_id' => 'updated_by']);
+    }
+
+    /**
+     * Gets query for [[DeletedBy]].
+     *
+     * @return \yii\db\ActiveQuery|UsersQuery
+     */
+    public function getDeletedBy()
+    {
+        return $this->hasOne(User::className(), ['user_id' => 'deleted_by']);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @return ManufactoryQuery the active query used by this AR class.
+     */
+    public static function find()
+    {
+        return new ManufactoryQuery(get_called_class());
+    }
+
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord) {
+            $this->created_by = Yii::$app->user->getId();
+            $this->created_time = date('Y-m-d H:i:s');
+        }
+        $this->name = strtoupper($this->name);
+        $this->pic_name = strtoupper($this->pic_name);
+        $this->updated_by = Yii::$app->user->getId();
+        $this->updated_time = date('Y-m-d H:i:s');
+        return parent::beforeSave($insert); // TODO: Change the autogenerated stub
+    }
+}
